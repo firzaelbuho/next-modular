@@ -1,10 +1,16 @@
 import * as fs from "fs";
 import * as path from "path";
 
-// ----------------------------------------------------------
-// Helpers (LOCAL, PURE)
-// ----------------------------------------------------------
+/* --------------------------------------------------
+ * Types
+ * -------------------------------------------------- */
+type GeneratorOptions = {
+  useSrcDir?: boolean;
+};
 
+/* --------------------------------------------------
+ * Helpers
+ * -------------------------------------------------- */
 function toKebab(input: string): string {
   return input.trim().toLowerCase().replace(/[\s_]+/g, "-");
 }
@@ -18,54 +24,42 @@ function toPascal(input: string): string {
 
 function timestamp(): string {
   const d = new Date();
-  const pad = (n: number) => (n < 10 ? "0" + n : n);
+  const pad = (n: number) => (n < 10 ? `0${n}` : n);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
     d.getDate()
   )} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-// ----------------------------------------------------------
-// Public API
-// ----------------------------------------------------------
-
-export function generateNextAppModule(moduleName: string): void {
+/* --------------------------------------------------
+ * Generator (App Router)
+ * -------------------------------------------------- */
+export function generateNextAppModule(
+  moduleName: string,
+  options: GeneratorOptions = {}
+): void {
   const rawModuleName = toKebab(moduleName);
   const pascal = toPascal(rawModuleName);
 
-  // --------------------------------------------------------
-  // Paths
-  // --------------------------------------------------------
+  const baseDir = options.useSrcDir ? "src" : ".";
 
-  const SRC = "src";
+  const modulePath = path.join(baseDir, "modules", rawModuleName);
+  const appRouteDir = path.join(baseDir, "app", rawModuleName);
 
-  const modulePath = path.join(SRC, "modules", rawModuleName);
   const moduleIndexPath = path.join(modulePath, "index.tsx");
-
-  const appRouteDir = path.join(SRC, "app", rawModuleName);
   const appPagePath = path.join(appRouteDir, "page.tsx");
 
   const logFile = "module.log";
   const jsonFile = "module.json";
 
-  // --------------------------------------------------------
-  // Guard: prevent overwrite
-  // --------------------------------------------------------
-
-  if (fs.existsSync(modulePath)) {
-    throw new Error(`Module "${rawModuleName}" already exists.`);
-  }
-
-  // --------------------------------------------------------
-  // Create folders
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * Create folders
+   * -------------------------------------------------- */
   fs.mkdirSync(path.join(modulePath, "components"), { recursive: true });
   fs.mkdirSync(appRouteDir, { recursive: true });
 
-  // --------------------------------------------------------
-  // store.ts (Zustand – dumb)
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * store.ts (Zustand – dumb)
+   * -------------------------------------------------- */
   fs.writeFileSync(
     path.join(modulePath, "store.ts"),
     `import { create } from "zustand";
@@ -78,10 +72,9 @@ export const use${pascal}Store = create<${pascal}State>(() => ({
 `
   );
 
-  // --------------------------------------------------------
-  // types.ts
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * types.ts
+   * -------------------------------------------------- */
   fs.writeFileSync(
     path.join(modulePath, "types.ts"),
     `export type ${pascal}State = {
@@ -90,10 +83,9 @@ export const use${pascal}Store = create<${pascal}State>(() => ({
 `
   );
 
-  // --------------------------------------------------------
-  // values.ts
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * values.ts
+   * -------------------------------------------------- */
   fs.writeFileSync(
     path.join(modulePath, "values.ts"),
     `export const DEFAULT_${pascal.toUpperCase()}_STATE = {
@@ -102,10 +94,9 @@ export const use${pascal}Store = create<${pascal}State>(() => ({
 `
   );
 
-  // --------------------------------------------------------
-  // service.ts (ALL MUTATION HERE)
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * service.ts (ALL MUTATION HERE)
+   * -------------------------------------------------- */
   fs.writeFileSync(
     path.join(modulePath, "service.ts"),
     `import { use${pascal}Store } from "./store";
@@ -122,10 +113,9 @@ export function decrement(): void {
 `
   );
 
-  // --------------------------------------------------------
-  // modules/<name>/index.tsx (CLIENT UI ROOT)
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * modules/<name>/index.tsx (CLIENT UI ROOT)
+   * -------------------------------------------------- */
   fs.writeFileSync(
     moduleIndexPath,
     `"use client";
@@ -160,10 +150,9 @@ export default function ${pascal}Page() {
 `
   );
 
-  // --------------------------------------------------------
-  // app/<route>/page.tsx (ROUTE ONLY)
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * app/<route>/page.tsx (ROUTE ONLY)
+   * -------------------------------------------------- */
   fs.writeFileSync(
     appPagePath,
     `import ${pascal}Page from "@/modules/${rawModuleName}";
@@ -174,25 +163,22 @@ export default function Page() {
 `
   );
 
-  // --------------------------------------------------------
-  // Logging
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * Logging
+   * -------------------------------------------------- */
   const logLine = `[${timestamp()}] Created module (app router): ${rawModuleName}\n`;
   fs.appendFileSync(logFile, logLine);
 
-  // --------------------------------------------------------
-  // module.json
-  // --------------------------------------------------------
-
+  /* --------------------------------------------------
+   * module.json
+   * -------------------------------------------------- */
   type ModuleEntry = { name: string; route: string; router: "app" };
 
   let jsonData: { modules: ModuleEntry[] } = { modules: [] };
 
   if (fs.existsSync(jsonFile)) {
     try {
-      const content = fs.readFileSync(jsonFile, "utf8");
-      jsonData = JSON.parse(content);
+      jsonData = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
     } catch {
       // ignore, regenerate
     }
@@ -205,7 +191,7 @@ export default function Page() {
   jsonData.modules.push({
     name: rawModuleName,
     route: `/${rawModuleName}`,
-    router: "app"
+    router: "app",
   });
 
   fs.writeFileSync(jsonFile, JSON.stringify(jsonData, null, 2));

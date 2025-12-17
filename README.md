@@ -1,3 +1,13 @@
+Berikut **versi README.md yang sudah DIUPDATE** agar **konsisten dengan fitur flag `--src`** dan perilaku generator terbaru.
+
+Perubahan utama:
+
+* ❌ Tidak lagi mengasumsikan `src/` sebagai default
+* ✅ Menjelaskan **dua mode struktur**: *root-based* dan *src-based*
+* ✅ Menambahkan dokumentasi **flag `--src`** di semua bagian relevan
+* ❌ Tidak mengubah filosofi / aturan inti
+
+---
 
 # 💎 nxt-modular
 
@@ -10,19 +20,19 @@
 
 ## 📌 Overview
 
-`nxt-modular` adalah **CLI generator** untuk membangun **arsitektur modular yang ketat** pada **Next.js**, baik menggunakan **Page Router** maupun **App Router**.
+`nxt-modular` is a **CLI generator** for building a **strict modular architecture** in **Next.js**, supporting both the **Page Router** and the **App Router**.
 
-Tool ini **memaksa disiplin arsitektur**, bukan sekadar scaffold:
+This tool **enforces architectural discipline**, not just scaffolding:
 
-* 1 halaman = 1 module
-* Store **dumb**
-* UI **dumb**
-* Semua mutasi lewat service
-* Tidak ada `any`
-* Tidak ada logic di route
-* Tidak ada import silang antar module
+* 1 page = 1 module
+* Dumb store
+* Dumb UI
+* All mutations go through services
+* No `any`
+* No logic inside route files
+* No cross-module imports
 
-Jika kamu mencari generator “cepat jadi tapi berantakan”, **ini bukan untukmu**.
+If you are looking for a “quick but messy” generator, **this tool is not for you**.
 
 ---
 
@@ -31,13 +41,14 @@ Jika kamu mencari generator “cepat jadi tapi berantakan”, **ini bukan untukm
 1. [Installation](#-installation)
 2. [Quick Start](#-quick-start)
 3. [CLI Commands](#-cli-commands)
-4. [Supported Routers](#-supported-routers)
-5. [Architecture Philosophy](#-architecture-philosophy)
-6. [Module Structure](#-module-structure)
-7. [State Management Rules](#-state-management-rules)
-8. [Routing Rules](#-routing-rules)
-9. [Styling Rules](#-styling-rules)
-10. [License](#-license)
+4. [Directory Modes (`--src`)](#-directory-modes---src)
+5. [Supported Routers](#-supported-routers)
+6. [Architecture Philosophy](#-architecture-philosophy)
+7. [Module Structure](#-module-structure)
+8. [State Management Rules](#-state-management-rules)
+9. [Routing Rules](#-routing-rules)
+10. [Styling Rules](#-styling-rules)
+11. [License](#-license)
 
 ---
 
@@ -65,29 +76,63 @@ pnpm add -g nxt-modular
 
 ## 🚀 Quick Start
 
-### Create a Module (Page Router)
+### Create a Module (Page Router, default)
 
 ```bash
 bunx nxt-modular create home
 ```
 
-Output:
+**Output (no `src/`):**
 
-* `src/modules/home/`
-* `src/pages/home/index.tsx`
+```
+modules/home/
+pages/home/index.tsx
+```
 
 ---
 
-### Create a Module (App Router)
+### Create a Module (Page Router, with `src/`)
+
+```bash
+bunx nxt-modular create home --src
+```
+
+**Output:**
+
+```
+src/modules/home/
+src/pages/home/index.tsx
+```
+
+---
+
+### Create a Module (App Router, default)
 
 ```bash
 bunx nxt-modular create-app home
 ```
 
-Output:
+**Output (no `src/`):**
 
-* `src/modules/home/`
-* `src/app/home/page.tsx`
+```
+modules/home/
+app/home/page.tsx
+```
+
+---
+
+### Create a Module (App Router, with `src/`)
+
+```bash
+bunx nxt-modular create-app home --src
+```
+
+**Output:**
+
+```
+src/modules/home/
+src/app/home/page.tsx
+```
 
 ---
 
@@ -99,12 +144,13 @@ Generate a **Next.js Page Router module**.
 
 ```bash
 nxt-modular create user-profile
+nxt-modular create user-profile --src
 ```
 
 **Generated:**
 
-* `src/modules/user-profile/`
-* `src/pages/user-profile/index.tsx`
+* `modules/user-profile/` **or** `src/modules/user-profile/`
+* `pages/user-profile/index.tsx` **or** `src/pages/user-profile/index.tsx`
 
 ---
 
@@ -114,12 +160,57 @@ Generate a **Next.js App Router module**.
 
 ```bash
 nxt-modular create-app dashboard
+nxt-modular create-app dashboard --src
 ```
 
 **Generated:**
 
-* `src/modules/dashboard/`
-* `src/app/dashboard/page.tsx`
+* `modules/dashboard/` **or** `src/modules/dashboard/`
+* `app/dashboard/page.tsx` **or** `src/app/dashboard/page.tsx`
+
+---
+
+## 📂 Directory Modes (`--src`)
+
+`nxt-modular` supports **two official directory layouts**.
+
+### 1️⃣ Root-based (default)
+
+Used by many Next.js projects.
+
+```
+modules/
+pages/
+app/
+```
+
+Command:
+
+```bash
+nxt-modular create home
+```
+
+---
+
+### 2️⃣ `src/`-based (opt-in)
+
+Used by teams that prefer stricter separation.
+
+```
+src/
+├── modules/
+├── pages/
+└── app/
+```
+
+Command:
+
+```bash
+nxt-modular create home --src
+```
+
+> `--src` is **explicit by design**.
+> The generator does not auto-detect to avoid ambiguity.
 
 ---
 
@@ -162,7 +253,7 @@ nxt-modular create-app dashboard
 Example: `home`
 
 ```text
-src/modules/home/
+modules/home/
 ├── index.tsx        <- Module UI root (client)
 ├── store.ts         <- Zustand store (state only)
 ├── service.ts       <- All mutations & logic
@@ -171,11 +262,13 @@ src/modules/home/
 └── components/      <- Module-only components
 ```
 
+> When using `--src`, the same structure lives under `src/modules/`.
+
 ### Rules
 
 * Modules **cannot import other modules**
-* Shared code goes to `src/shared/`
-* `index.tsx` is the **only UI entry**
+* Shared code must live in `shared/` or `src/shared/`
+* `index.tsx` is the **only UI entry point**
 
 ---
 
@@ -197,20 +290,16 @@ src/modules/home/
 
 ### UI
 
-* ❌ mutate store
-* ❌ fetch data
-* ❌ business logic
-* ✅ call service functions
+* ❌ Mutate store
+* ❌ Fetch data
+* ❌ Business logic
+* ✅ Call service functions
 
 ---
 
 ## 🧭 Routing Rules
 
 ### Page Router
-
-```text
-src/pages/home/index.tsx
-```
 
 ```tsx
 import HomePage from "@/modules/home";
@@ -221,10 +310,6 @@ export default function Page() {
 ```
 
 ### App Router
-
-```text
-src/app/home/page.tsx
-```
 
 ```tsx
 import HomePage from "@/modules/home";
@@ -264,11 +349,11 @@ This architecture **mandates**:
 ## ❌ What This Tool Intentionally Does NOT Do
 
 * ❌ Auto-generate API routes
-* ❌ Manage database
+* ❌ Manage databases
 * ❌ Provide magic state shortcuts
 * ❌ Allow architectural shortcuts
 
-This tool **optimizes for long-term sanity**, not speed hacks.
+This tool **optimizes for long-term sanity**, not short-term speed hacks.
 
 ---
 

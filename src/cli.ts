@@ -11,35 +11,39 @@ const version = "1.0.0";
 const program = new Command();
 
 program
-  .name("next-modular")
+  .name("nxt-modular")
   .description("CLI Generator for Next.js Modular Architecture")
   .version(version);
 
 /* --------------------------------------------------
- * COMMAND: create (Next.js Page Router)
- * bunx next-modular create home
+ * create (Page Router)
  * -------------------------------------------------- */
 program
   .command("create")
   .description("Create module using Next.js Page Router")
   .argument("<name>", "Module name (kebab-case)")
-  .action((name: string) => {
+  .option("--src", "Generate inside src/ directory")
+  .action((name: string, options: { src?: boolean }) => {
     console.log(pc.cyan("→ Generating Next.js Page Router module..."));
-    generateNextPageModule(name);
+    generateNextPageModule(name, {
+      useSrcDir: Boolean(options.src),
+    });
     console.log(pc.green("✔ Done"));
   });
 
 /* --------------------------------------------------
- * COMMAND: create-app (Next.js App Router)
- * bunx next-modular create-app home
+ * create-app (App Router)
  * -------------------------------------------------- */
 program
   .command("create-app")
   .description("Create module using Next.js App Router")
   .argument("<name>", "Module name (kebab-case)")
-  .action((name: string) => {
+  .option("--src", "Generate inside src/ directory")
+  .action((name: string, options: { src?: boolean }) => {
     console.log(pc.cyan("→ Generating Next.js App Router module..."));
-    generateNextAppModule(name);
+    generateNextAppModule(name, {
+      useSrcDir: Boolean(options.src),
+    });
     console.log(pc.green("✔ Done"));
   });
 
