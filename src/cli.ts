@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 import { Command } from "commander";
 import pc from "picocolors";
 
@@ -15,13 +16,12 @@ program
   .version(version);
 
 /* --------------------------------------------------
- * COMMAND: create module (Next.js Page Router)
- * bunx next-modular create module home
+ * COMMAND: create (Next.js Page Router)
+ * bunx next-modular create home
  * -------------------------------------------------- */
 program
   .command("create")
-  .description("Create module (Next.js Page Router)")
-  .command("module")
+  .description("Create module using Next.js Page Router")
   .argument("<name>", "Module name (kebab-case)")
   .action((name: string) => {
     console.log(pc.cyan("→ Generating Next.js Page Router module..."));
@@ -30,13 +30,12 @@ program
   });
 
 /* --------------------------------------------------
- * COMMAND: create-app module (Next.js App Router)
- * bunx next-modular create-app module home
+ * COMMAND: create-app (Next.js App Router)
+ * bunx next-modular create-app home
  * -------------------------------------------------- */
 program
   .command("create-app")
-  .description("Create module (Next.js App Router)")
-  .command("module")
+  .description("Create module using Next.js App Router")
   .argument("<name>", "Module name (kebab-case)")
   .action((name: string) => {
     console.log(pc.cyan("→ Generating Next.js App Router module..."));

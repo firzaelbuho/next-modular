@@ -1,224 +1,282 @@
-Here is the updated **README.md** tailored for public users, removing local development steps and including your GitHub repository link.
 
------
+# 💎 nxt-modular
 
-# 💎 sv-modular
+**The Strict Modular Architecture Generator for Next.js**
 
-**The Strict Modular Architecture Generator for SvelteKit**
+🔗 **Repository:** [https://github.com/firzaelbuho/nxt-modular](https://github.com/firzaelbuho/nxt-modular)
+📦 **NPM:** [https://www.npmjs.com/package/nxt-modular](https://www.npmjs.com/package/nxt-modular)
 
-[](https://github.com/firzaelbuho/sv-modular) [](https://www.google.com/search?q=https://www.npmjs.com/package/sv-modular)
+---
 
-`sv-modular` is a CLI tool designed to generate scalable, type-safe, and modular SvelteKit project structures. This tool enforces an architecture where every feature is perfectly isolated, enforcing a strict separation between UI State (Frontend) and Domain Logic (Backend/API).
+## 📌 Overview
 
-🔗 **Repository:** [https://github.com/firzaelbuho/sv-modular](https://github.com/firzaelbuho/sv-modular)
+`nxt-modular` adalah **CLI generator** untuk membangun **arsitektur modular yang ketat** pada **Next.js**, baik menggunakan **Page Router** maupun **App Router**.
 
------
+Tool ini **memaksa disiplin arsitektur**, bukan sekadar scaffold:
+
+* 1 halaman = 1 module
+* Store **dumb**
+* UI **dumb**
+* Semua mutasi lewat service
+* Tidak ada `any`
+* Tidak ada logic di route
+* Tidak ada import silang antar module
+
+Jika kamu mencari generator “cepat jadi tapi berantakan”, **ini bukan untukmu**.
+
+---
 
 ## 📋 Table of Contents
 
-1.  [Installation](https://www.google.com/search?q=%23-installation)
-2.  [Quick Start](https://www.google.com/search?q=%23-quick-start)
-3.  [CLI Commands](https://www.google.com/search?q=%23-cli-commands)
-4.  [Architecture Philosophy](https://www.google.com/search?q=%23-architecture-philosophy)
-5.  [Frontend Architecture (UI Modules)](https://www.google.com/search?q=%23-frontend-architecture-ui-modules)
-6.  [Backend Architecture (REST API)](https://www.google.com/search?q=%23-backend-architecture-rest-api)
-7.  [Styling & UI Rules](https://www.google.com/search?q=%23-styling--ui-rules)
+1. [Installation](#-installation)
+2. [Quick Start](#-quick-start)
+3. [CLI Commands](#-cli-commands)
+4. [Supported Routers](#-supported-routers)
+5. [Architecture Philosophy](#-architecture-philosophy)
+6. [Module Structure](#-module-structure)
+7. [State Management Rules](#-state-management-rules)
+8. [Routing Rules](#-routing-rules)
+9. [Styling Rules](#-styling-rules)
+10. [License](#-license)
 
------
+---
 
 ## 📦 Installation
-
-You can run this library directly using `npx` / `bunx` or install it globally from the npm registry.
 
 ### Using Bun (Recommended)
 
 ```bash
-# Run directly without installation
-bunx sv-modular create my-feature
+# Run directly
+bunx nxt-modular create home
 
 # Or install globally
-bun add -g sv-modular
+bun add -g nxt-modular
 ```
 
 ### Using NPM / PNPM
 
 ```bash
-# Install globally
-npm install -g sv-modular
-
-# Or using PNPM
-pnpm add -g sv-modular
+npm install -g nxt-modular
+# or
+pnpm add -g nxt-modular
 ```
 
------
+---
 
 ## 🚀 Quick Start
 
-### 1\. Create a UI Module (Frontend)
-
-Creates a new page complete with an isolated Store, Service, and Components.
+### Create a Module (Page Router)
 
 ```bash
-# Create a "user-dashboard" module
-sv-modular create user-dashboard
-
-# With a custom route path
-sv-modular create auth-login --route auth/login
+bunx nxt-modular create home
 ```
 
-### 2\. Create an API Module (Backend)
+Output:
 
-Creates REST API endpoints complete with CRUD Services, Dummy Data, and Specs.
+* `src/modules/home/`
+* `src/pages/home/index.tsx`
+
+---
+
+### Create a Module (App Router)
 
 ```bash
-# Format: <nested-folder>/<module-name>
-sv-modular create-server bands/linkinpark/songs
+bunx nxt-modular create-app home
 ```
 
------
+Output:
+
+* `src/modules/home/`
+* `src/app/home/page.tsx`
+
+---
 
 ## 🛠 CLI Commands
 
 ### `create <name>`
 
-Generates a **Frontend/UI Module** structure.
+Generate a **Next.js Page Router module**.
 
-| Argument | Description | Example |
-| :--- | :--- | :--- |
-| `<name>` | Module name in kebab-case format. | `product-list` |
-| `--route` | (Optional) Custom path for the SvelteKit route. | `--route app/products` |
+```bash
+nxt-modular create user-profile
+```
 
-**Output:**
+**Generated:**
 
-  * Creates `src/lib/modules/<name>/` (Store, UI, Logic)
-  * Creates `src/routes/<route>/+page.svelte` (Routing)
-  * Updates `module.json`
+* `src/modules/user-profile/`
+* `src/pages/user-profile/index.tsx`
 
-### `create-server <path>`
+---
 
-Generates a **Backend/REST API Module** structure.
+### `create-app <name>`
 
-| Argument | Description | Example |
-| :--- | :--- | :--- |
-| `<path>` | Module path (can be nested). The final name will be pluralized for the route. | `music/rock/albums` |
+Generate a **Next.js App Router module**.
 
-**Output:**
+```bash
+nxt-modular create-app dashboard
+```
 
-  * Creates `src/lib/modules/<path>/` (Services, Types, Values, Spec)
-  * Creates `src/routes/api/<plural-path>/+server.ts` (API Endpoints)
-  * Creates `src/lib/helpers/response.ts` (Standard JSON Response)
+**Generated:**
 
------
+* `src/modules/dashboard/`
+* `src/app/dashboard/page.tsx`
+
+---
+
+## 🔀 Supported Routers
+
+| Router Type            | Supported |
+| ---------------------- | --------- |
+| Page Router (`pages/`) | ✅         |
+| App Router (`app/`)    | ✅         |
+
+**Important:**
+
+* Page Router → `index.tsx`
+* App Router → `page.tsx`
+* **Do not mix conventions**
+
+---
 
 ## 🏛 Architecture Philosophy
 
-This project adopts a **Strict Modularity** approach :
+`nxt-modular` enforces **Strict Modularity**:
 
-1.  **Zero Circular Dependencies:** Modules must not import other modules.
-2.  **Shared Logic:** All common/reusable logic goes into `src/lib/shared/`.
-3.  **Strict Types:** No `any`. All data types must be defined.
-4.  **Separation of Concerns:**
-      * **UI** must not mutate state directly.
-      * **Services** handle business logic.
-      * **Stores** only hold state.
+1. **One Page = One Module**
+2. **No Circular Dependencies**
+3. **No Cross-Module Imports**
+4. **Strict TypeScript (no `any`)**
+5. **Unidirectional Data Flow**
 
------
+### Mental Model
 
-## 🎨 Frontend Architecture (UI Modules)
+> **UI renders.**
+> **Store stores.**
+> **Service decides.**
+> **Route loads only.**
 
-Every page is a module. The folder structure for UI modules is located in `src/lib/modules/`.
+---
 
-### Module File Structure
+## 🧱 Module Structure
 
-Example for `user-profile`:
-
-```text
-src/lib/modules/user-profile/
-├── UserProfilePage.svelte  <- Main UI Component
-├── store.ts                <- Writable Store (State)
-├── service.ts              <- Business Logic (Mutations)
-├── types.ts                <- UI State Interfaces
-├── values.ts               <- Default Constants
-└── components/             <- Module-specific Components
-```
-
-### Key Rules
-
-1.  **Route Layer (`src/routes/...`)** must only contain imports to `ModulePage.svelte`. No logic is allowed in `+page.svelte`.
-2.  **State Mutation:**
-      * ❌ **FORBIDDEN:** `store.update(...)` inside `.svelte` files.
-      * ✅ **MANDATORY:** Call functions from `service.ts` (e.g., `increment()`, `fetchUser()`).
-3.  **Cross-Import:** Module A cannot import files from Module B. Use `src/lib/shared` for shared code.
-
------
-
-## ⚙️ Backend Architecture (REST API)
-
-The Backend is structured based on simple **Domain Driven Design**. API module structures are also located in `src/lib/modules/` but are separate from the UI, and exposed via `src/routes/api/`.
-
-### Module File Structure
-
-Example command: `sv-modular create-server bands/linkinpark/songs`
+Example: `home`
 
 ```text
-src/lib/modules/bands/linkinpark/songs/
-├── types.ts      <- Data Model (Interface Song)
-├── values.ts     <- In-Memory Dummy Data (FAKE_SONG)
-├── services.ts   <- CRUD Logic (getAll, getById, insert...)
-└── spec.md       <- API Endpoint Documentation
+src/modules/home/
+├── index.tsx        <- Module UI root (client)
+├── store.ts         <- Zustand store (state only)
+├── service.ts       <- All mutations & logic
+├── types.ts         <- UI state types
+├── values.ts        <- Default state
+└── components/      <- Module-only components
 ```
 
-### Route Generation
+### Rules
 
-The CLI automatically generates API routes with a **Plural** format:
+* Modules **cannot import other modules**
+* Shared code goes to `src/shared/`
+* `index.tsx` is the **only UI entry**
 
-  * `GET /api/bands/linkinpark/songs` (List & Filter)
-  * `POST /api/bands/linkinpark/songs` (Create)
-  * `GET /api/bands/linkinpark/songs/:id` (Detail)
-  * `PUT /api/bands/linkinpark/songs/:id` (Update)
-  * `DELETE /api/bands/linkinpark/songs/:id` (Remove)
+---
 
-### Built-in API Features
+## 🧠 State Management Rules (Zustand)
 
-1.  **Standard Response:** Uses helpers like `responseOk`, `responseBadRequest`, etc.
-2.  **Filtering:** Supports query params `?address=...` and `?age=...`.
-3.  **Searching:** Supports query param `?s=keyword`.
-4.  **Dummy Data:** Uses in-memory arrays that are editable (mutable) for rapid prototyping.
+### Store (`store.ts`)
 
------
+* ❌ No logic
+* ❌ No async
+* ❌ No actions
+* ✅ State only
 
-## 💅 Styling & UI Rules
+### Service (`service.ts`)
 
-This library mandates the use of **TailwindCSS** and **DaisyUI** to ensure consistency.
+* ✅ `setState`
+* ✅ async / fetch
+* ✅ business rules
+* ✅ orchestration
 
-### 1\. Frameworks
+### UI
 
-  * **TailwindCSS:** For utility classes (`p-4`, `flex`, `text-center`).
-  * **DaisyUI:** For components (`btn`, `card`, `modal`) and theming.
+* ❌ mutate store
+* ❌ fetch data
+* ❌ business logic
+* ✅ call service functions
 
-### 2\. Layout Guidelines
+---
 
-  * **Container:** Use `max-w-5xl mx-auto` for main content.
-  * **Sectioning:** Split the page into section components (e.g., `HeroSection.svelte`, `ListSection.svelte`) inside the module's `components/` folder.
-  * **Spacing:** Consistently use `py-10` or `gap-6`.
+## 🧭 Routing Rules
 
-### 3\. Responsive Design
+### Page Router
 
-  * **Mobile First:** Design for mobile first, then use `md:` and `lg:` for larger screens.
-  * **Grid:** 1 column on mobile, 2-3 columns on desktop.
+```text
+src/pages/home/index.tsx
+```
 
-### 4\. Code Style
+```tsx
+import HomePage from "@/modules/home";
 
-  * **Comments:** Mandatory descriptive comments for every logic block.
-  * **Semantic HTML:** Use `<header>`, `<main>`, `<section>`, `<footer>`.
-  * **No Hardcoded Colors:** Use semantic classes (`bg-primary`, `text-error`) from the DaisyUI theme.
+export default function Page() {
+  return <HomePage />;
+}
+```
 
------
+### App Router
+
+```text
+src/app/home/page.tsx
+```
+
+```tsx
+import HomePage from "@/modules/home";
+
+export default function Page() {
+  return <HomePage />;
+}
+```
+
+**Route files are dumb loaders. Period.**
+
+---
+
+## 🎨 Styling Rules
+
+This architecture **mandates**:
+
+* **TailwindCSS**
+* **DaisyUI**
+
+### Styling Rules
+
+* ❌ Inline styles
+* ❌ Hardcoded colors
+* ❌ Random CSS
+* ✅ Tailwind utilities
+* ✅ DaisyUI components (`btn`, `card`, `modal`)
+
+### Layout Guidelines
+
+* Use `max-w-5xl mx-auto`
+* Split UI into section components
+* Mobile-first, responsive grids
+
+---
+
+## ❌ What This Tool Intentionally Does NOT Do
+
+* ❌ Auto-generate API routes
+* ❌ Manage database
+* ❌ Provide magic state shortcuts
+* ❌ Allow architectural shortcuts
+
+This tool **optimizes for long-term sanity**, not speed hacks.
+
+---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
+MIT License © firzaelbuho
 
------
+---
 
-*Generated by sv-modular CLI*
+**nxt-modular**
+*Strict architecture. No shortcuts.*

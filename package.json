@@ -1,6 +1,6 @@
 {
-  "name": "next-modular",
-  "version": "1.0.0",
+  "name": "nxt-modular",
+  "version": "1.0.1",
   "description": "CLI generator for Next.js modular architecture (Page Router & App Router)",
   "license": "MIT",
   "author": "firzaelbuho",
